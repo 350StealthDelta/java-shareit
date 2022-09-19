@@ -4,7 +4,6 @@ import lombok.NoArgsConstructor;
 import ru.practicum.shareit.user.model.User;
 
 @NoArgsConstructor
-//@Service
 public class UserDtoMapper {
 
     public static UserDto userToUserDto(User user) {

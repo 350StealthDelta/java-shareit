@@ -11,7 +11,7 @@ import java.util.stream.Collectors;
 @Repository
 public class UserInMemoryRepository implements UserDao {
 
-    Map<Long, User> users = new HashMap<>();
+    private final Map<Long, User> users = new HashMap<>();
 
     private Long id = 1L;
 
