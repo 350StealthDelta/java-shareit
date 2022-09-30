@@ -30,7 +30,8 @@ public class UserController {
      */
     @GetMapping("/{id}")
     public UserDto getUser(@PathVariable Long id) {
-        log.info("Call 'getUser' with id {}", id);
+        log.info("=== Call 'getUser' with id {}",
+                id);
         return service.getUser(id);
     }
 
@@ -41,7 +42,7 @@ public class UserController {
      */
     @GetMapping
     public List<UserDto> getAllUsers() {
-        log.info("Call 'getAllUsers'.");
+        log.info("=== Call 'getAllUsers'.");
         return service.getAllUsers();
     }
 
@@ -53,7 +54,8 @@ public class UserController {
      */
     @PostMapping
     public UserDto addUser(@RequestBody @Validated({OnCreate.class}) UserDto userDto) {
-        log.info("Call 'addUser' with userDto {}", userDto);
+        log.info("=== Call 'addUser' with userDto {}",
+                userDto);
         return service.addUser(userDto);
     }
 
@@ -65,8 +67,11 @@ public class UserController {
      * @return - пользователь с обновленными данными.
      */
     @PatchMapping("/{userId}")
-    public UserDto updateUser(@RequestBody @Validated({OnUpdate.class}) UserDto userDto, @PathVariable Long userId) {
-        log.info("Call 'updateUser' with userDto {}, userId {}", userDto, userId);
+    public UserDto updateUser(@RequestBody @Validated({OnUpdate.class}) UserDto userDto,
+                              @PathVariable Long userId) {
+        log.info("=== Call 'updateUser' with userDto {}, userId {}",
+                userDto,
+                userId);
         return service.editUser(userDto, userId);
     }
 
@@ -77,7 +82,8 @@ public class UserController {
      */
     @DeleteMapping("/{id}")
     public void deleteUser(@PathVariable Long id) {
-        log.info("Call 'deleteUser' with id {}", id);
+        log.info("=== Call 'deleteUser' with id {}",
+                id);
         service.deleteUser(id);
     }
 }

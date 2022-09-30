@@ -4,15 +4,15 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.item.dto.ItemDtoForOut;
 import ru.practicum.shareit.item.service.ItemService;
 import ru.practicum.shareit.util.OnCreate;
 
+import javax.validation.Valid;
 import java.util.List;
 
-/**
- * TODO Sprint add-controllers.
- */
 @RestController
 @RequestMapping("/items")
 @Slf4j
@@ -30,8 +30,10 @@ public class ItemController {
     @PostMapping
     public ItemDto addNewItem(@RequestBody @Validated({OnCreate.class}) ItemDto itemDto,
                               @RequestHeader("X-Sharer-User-Id") Long ownerId) {
-        log.info("Call 'addNewItem' with itemDto {}, itemId {}.", itemDto, ownerId);
-        return service.addItem(itemDto, ownerId);
+        log.info("=== Call 'addNewItem' with itemDto {}, ownerId {}.",
+                itemDto, ownerId);
+        return service.addItem(itemDto,
+                ownerId);
     }
 
     /**
@@ -43,10 +45,11 @@ public class ItemController {
      * @return - предмет с обновленными данными.
      */
     @PatchMapping("/{itemId}")
-    public ItemDto updateItem(@RequestBody ItemDto itemDto,
+    public ItemDto updateItem(@Validated @RequestBody ItemDto itemDto,
                               @PathVariable Long itemId,
                               @RequestHeader("X-Sharer-User-Id") Long ownerId) {
-        log.info("Call 'updateItem' with itemDto {}, itemId {}, ownerId {}.", itemDto, itemId, ownerId);
+        log.info("=== Call 'updateItem' with itemDto {}, itemId {}, ownerId {}.",
+                itemDto, itemId, ownerId);
         return service.updateItem(itemDto, itemId, ownerId);
     }
 
@@ -58,10 +61,11 @@ public class ItemController {
      * @return - предмет в формате ItemDto.
      */
     @GetMapping("/{itemId}")
-    public ItemDto getItem(@PathVariable Long itemId,
-                           @RequestHeader("X-Sharer-User-Id") Long userId) {
-        log.info("Call 'getItem' with itemId {}.", itemId);
-        return service.getItem(itemId);
+    public ItemDtoForOut getItem(@PathVariable Long itemId,
+                                 @RequestHeader("X-Sharer-User-Id") Long userId) {
+        log.info("=== Call 'getItem' with itemId {} and userId {}.",
+                itemId, userId);
+        return service.getItem(itemId, userId);
     }
 
     /**
@@ -71,8 +75,9 @@ public class ItemController {
      * @return - список предметов пользователя.
      */
     @GetMapping
-    public List<ItemDto> getAllItems(@RequestHeader("X-Sharer-User-Id") Long ownerId) {
-        log.info("Call 'getItems'.");
+    public List<ItemDtoForOut> getAllItems(@RequestHeader("X-Sharer-User-Id") Long ownerId) {
+        log.info("=== Call 'getItems' with ownerId {}.",
+                ownerId);
         return service.getAllItems(ownerId);
     }
 
@@ -86,7 +91,17 @@ public class ItemController {
     @GetMapping("/search")
     public List<ItemDto> searchItems(@RequestParam(value = "text") String text,
                                      @RequestHeader("X-Sharer-User-Id") Long userId) {
-        log.info("Call 'searchItems' with text {}", text);
+        log.info("=== Call 'searchItems' with text {}",
+                text);
         return service.searchItems(text);
+    }
+
+    @PostMapping("/{itemId}/comment")
+    public CommentDto addComment(@PathVariable(name = "itemId") Long itemId,
+                                 @RequestHeader("X-Sharer-User-Id") Long userId,
+                                 @RequestBody @Valid CommentDto comment) {
+        log.info("=== Call 'addComment' with itemId {}, userId {}, text {}.",
+                itemId, userId, comment);
+        return service.addComment(itemId, userId, comment);
     }
 }
