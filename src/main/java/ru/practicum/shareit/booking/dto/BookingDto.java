@@ -6,10 +6,6 @@ import ru.practicum.shareit.booking.validation.BookingTimeCheck;
 import javax.validation.constraints.FutureOrPresent;
 import java.time.LocalDateTime;
 
-/**
- * TODO Sprint add-bookings.
- */
-
 @Getter
 @Setter
 @NoArgsConstructor

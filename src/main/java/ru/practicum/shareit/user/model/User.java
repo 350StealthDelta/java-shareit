@@ -7,10 +7,6 @@ import javax.persistence.*;
 import javax.validation.constraints.Email;
 import java.util.Objects;
 
-/**
- * TODO Sprint add-controllers.
- */
-
 @Getter
 @Setter
 @NoArgsConstructor
