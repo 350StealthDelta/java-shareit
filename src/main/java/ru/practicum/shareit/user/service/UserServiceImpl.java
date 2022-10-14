@@ -70,9 +70,9 @@ public class UserServiceImpl implements UserService {
 
     private void usersFieldsMapping(User userFor, User userFrom) {
         // Переделать через рефлексию
-        if (userFor.getId() == null) {
+/*        if (userFor.getId() == null) {
             userFor.setId(userFrom.getId());
-        }
+        }*/
         if (userFor.getName() == null) {
             userFor.setName(userFrom.getName());
         }

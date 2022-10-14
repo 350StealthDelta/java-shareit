@@ -44,6 +44,13 @@ public class ErrorHandler {
     }
 
     @ExceptionHandler
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse clashStateException(ClashStateException e) {
+        log.warn("Неверное состояние бронирования в запросе. {}", e.getMessage());
+        return new ErrorResponse("Неверное состояние бронирования в запросе.", e.getMessage());
+    }
+
+    @ExceptionHandler
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ErrorResponse generalException(Throwable e) {
         log.warn("Неожиданная ошибка сервера. {}", e.getMessage());
@@ -79,7 +86,7 @@ public class ErrorHandler {
     }
 
     @ExceptionHandler
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
     public ErrorResponse wrongStateException(WrongStateException e) {
         log.warn("Неверное состояние бронирования в запросе. {}", e.getMessage());
         return new ErrorResponse("Неверное состояние бронирования в запросе.", e.getMessage());
@@ -90,5 +97,12 @@ public class ErrorHandler {
     public ErrorResponse bookingNotFoundException(BookingNotFoundException e) {
         log.warn("Бронирование не найдено. {}", e.getMessage());
         return new ErrorResponse("Бронирование не найдено.", e.getMessage());
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ErrorResponse requestNotFoundException(RequestNotFoundException e) {
+        log.warn("Request не найден. {}", e.getMessage());
+        return new ErrorResponse("Request не найден.", e.getMessage());
     }
 }

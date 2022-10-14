@@ -10,11 +10,11 @@ import java.util.List;
 
 public interface CommentRepository extends JpaRepository<Comment, Long> {
 
-    @Query("select b " +
-            "from Booking b " +
-            "where b.item.id = ?1 " +
-            "and b.booker.id = ?2 " +
-            "and b.end < ?3")
+    @Query("SELECT b " +
+            "FROM Booking b " +
+            "WHERE b.item.id = ?1 " +
+            "AND b.booker.id = ?2 " +
+            "AND b.end < ?3")
     List<Booking> findAllByItem_IdAndAuthor_Id(Long itemId, Long userId, LocalDateTime now);
 
     List<Comment> findAllByItem_Id(Long itemId);

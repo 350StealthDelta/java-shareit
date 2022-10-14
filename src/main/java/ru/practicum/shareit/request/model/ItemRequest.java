@@ -24,7 +24,7 @@ public class ItemRequest {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "request_id")
-    private Long itemId;
+    private Long id;
 
     @Column(name = "description")
     private String description;
@@ -41,7 +41,7 @@ public class ItemRequest {
         if (this == o) return true;
         if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
         ItemRequest that = (ItemRequest) o;
-        return itemId != null && Objects.equals(itemId, that.itemId);
+        return id != null && Objects.equals(id, that.id);
     }
 
     @Override

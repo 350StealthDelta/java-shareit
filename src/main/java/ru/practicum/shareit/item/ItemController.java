@@ -2,15 +2,20 @@ package ru.practicum.shareit.item;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemDtoForOut;
 import ru.practicum.shareit.item.service.ItemService;
+import ru.practicum.shareit.util.CustomPageRequest;
 import ru.practicum.shareit.util.OnCreate;
 
 import javax.validation.Valid;
+import javax.validation.constraints.Positive;
+import javax.validation.constraints.PositiveOrZero;
 import java.util.List;
 
 @RestController
@@ -32,8 +37,7 @@ public class ItemController {
                               @RequestHeader("X-Sharer-User-Id") Long ownerId) {
         log.info("=== Call 'addNewItem' with itemDto {}, ownerId {}.",
                 itemDto, ownerId);
-        return service.addItem(itemDto,
-                ownerId);
+        return service.addItem(itemDto, ownerId);
     }
 
     /**
@@ -75,10 +79,16 @@ public class ItemController {
      * @return - список предметов пользователя.
      */
     @GetMapping
-    public List<ItemDtoForOut> getAllItems(@RequestHeader("X-Sharer-User-Id") Long ownerId) {
-        log.info("=== Call 'getItems' with ownerId {}.",
-                ownerId);
-        return service.getAllItems(ownerId);
+    public List<ItemDtoForOut> getAllItems(@RequestHeader("X-Sharer-User-Id") Long ownerId,
+                                           @PositiveOrZero
+                                           @RequestParam(value = "from", defaultValue = "0") int from,
+                                           @Positive
+                                           @RequestParam(value = "size", defaultValue = "10") int size) {
+        log.info("=== Call 'getItems' with ownerId {}, from {}, size{}.",
+                ownerId, from, size);
+        Sort orderById = Sort.by(Sort.Direction.DESC, "id");
+        PageRequest pageRequest = CustomPageRequest.of(from, size, orderById);
+        return service.getAllItems(ownerId, pageRequest);
     }
 
     /**
@@ -90,10 +100,16 @@ public class ItemController {
      */
     @GetMapping("/search")
     public List<ItemDto> searchItems(@RequestParam(value = "text") String text,
-                                     @RequestHeader("X-Sharer-User-Id") Long userId) {
+                                     @RequestHeader("X-Sharer-User-Id") Long userId,
+                                     @PositiveOrZero
+                                     @RequestParam(value = "from", defaultValue = "0") int from,
+                                     @Positive
+                                     @RequestParam(value = "size", defaultValue = "10") int size) {
         log.info("=== Call 'searchItems' with text {}",
                 text);
-        return service.searchItems(text);
+        Sort orderById = Sort.by(Sort.Direction.ASC, "id");
+        PageRequest pageRequest = CustomPageRequest.of(from, size, orderById);
+        return service.searchItems(text, pageRequest);
     }
 
     @PostMapping("/{itemId}/comment")

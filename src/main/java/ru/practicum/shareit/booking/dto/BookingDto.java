@@ -27,6 +27,7 @@ public class BookingDto {
     @AllArgsConstructor
     @Getter
     @Setter
+    @EqualsAndHashCode
     private class LocalItem {
         private Long id;
         private String name;
@@ -40,6 +41,7 @@ public class BookingDto {
     @AllArgsConstructor
     @Getter
     @Setter
+    @EqualsAndHashCode
     private class LocalBooker {
         private Long id;
     }

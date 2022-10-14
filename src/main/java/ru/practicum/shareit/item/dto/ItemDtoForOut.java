@@ -1,7 +1,6 @@
 package ru.practicum.shareit.item.dto;
 
 import lombok.*;
-import ru.practicum.shareit.request.model.ItemRequest;
 
 import java.util.List;
 
@@ -16,7 +15,7 @@ public class ItemDtoForOut {
     private String name;
     private String description;
     private Boolean available;
-    private ItemRequest request;
+    private Long requestId;
     private List<CommentDto> comments;
 
     private ItemBooking lastBooking;

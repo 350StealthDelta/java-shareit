@@ -1,6 +1,7 @@
 package ru.practicum.shareit.booking.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.dao.BookingRepository;
@@ -33,15 +34,20 @@ public class BookingServiceImpl implements BookingService {
     @Override
     @Transactional
     public BookingDto addBooking(BookingDtoInput bookingDtoInput, Long bookerId) {
+        if (getUserById(bookerId) == null) {
+            throw new WrongOwnerException("Id пользователя null.");
+        }
         Booking booking = mapper.toBooking(mapper.toBookongDtoFtomInput(bookingDtoInput),
                 getItemById(bookingDtoInput.getItemId()),
                 getUserById(bookerId));
         Item item = booking.getItem();
-        if (bookingDao.findAllByItemOwnerCurrent(
+        List<Booking> allByItemOwnerCurrent = bookingDao.findAllByItemOwnerCurrent(
                 item.getOwner().getId(),
                 bookingDtoInput.getStart(),
-                bookingDtoInput.getEnd()
-        ).size() > 0) {
+                bookingDtoInput.getEnd(),
+                null
+        );
+        if (allByItemOwnerCurrent.size() > 0) {
             item.setAvailable(false);
         }
         if (!item.getAvailable()) {
@@ -64,7 +70,7 @@ public class BookingServiceImpl implements BookingService {
         Booking booking = getBookingById(bookingId);
         BookingStatus status = approve ? BookingStatus.APPROVED : BookingStatus.REJECTED;
         if (booking.getStatus() == status) {
-            throw new WrongStateException(String
+            throw new ClashStateException(String
                     .format("Статус %s совпадает со статусом бронирования %s", status, booking));
         }
         if (booking.getItem().getOwner().getId().equals(userId)) {
@@ -85,94 +91,114 @@ public class BookingServiceImpl implements BookingService {
             return mapper.toBookingDto(booking);
         } else {
             throw new UserNotFoundException(String
-                    .format("Пользователь с id = %s не является собственником предмета или бронирующим.", bookingId));
+                    .format("Пользователь с id = %s не является собственником предмета или бронирующим.", userId));
         }
     }
 
     @Override
-    public List<BookingDto> getAllUserBookings(BookingState state, Long userId) {
+    public List<BookingDto> getAllUserBookings(BookingState state, Long userId, PageRequest pageRequest) {
         checkUserNotNullAndExist(userId);
         List<BookingDto> result;
         LocalDateTime currentTime = LocalDateTime.now();
         switch (state) {
             case ALL:
-                result = bookingDao.findAllByBooker(userId).stream()
+                result = bookingDao.findAllByBooker(userId,
+                                pageRequest).stream()
                         .map(mapper::toBookingDto)
                         .collect(Collectors.toList());
                 break;
             case PAST:
-                result = bookingDao.findAllByBookerInPast(userId, currentTime).stream()
+                result = bookingDao.findAllByBookerInPast(userId,
+                                currentTime,
+                                pageRequest).stream()
                         .map(mapper::toBookingDto)
                         .collect(Collectors.toList());
                 break;
             case FUTURE:
-                result = bookingDao.findAllByBookerInFuture(userId, currentTime).stream()
+                result = bookingDao.findAllByBookerInFuture(userId,
+                                currentTime,
+                                pageRequest).stream()
                         .map(mapper::toBookingDto)
                         .collect(Collectors.toList());
                 break;
             case CURRENT:
                 result = bookingDao.findAllByBookerCurrent(userId,
                                 currentTime,
-                                currentTime).stream()
+                                currentTime,
+                                pageRequest).stream()
                         .map(mapper::toBookingDto)
                         .collect(Collectors.toList());
                 break;
             case WAITING:
-                result = bookingDao.findAllByBookerAndStatus(userId, BookingStatus.WAITING).stream()
+                result = bookingDao.findAllByBookerAndStatus(userId,
+                                BookingStatus.WAITING,
+                                pageRequest).stream()
                         .map(mapper::toBookingDto)
                         .collect(Collectors.toList());
                 break;
             case REJECTED:
-                result = bookingDao.findAllByBookerAndStatus(userId, BookingStatus.REJECTED).stream()
+                result = bookingDao.findAllByBookerAndStatus(userId,
+                                BookingStatus.REJECTED,
+                                pageRequest).stream()
                         .map(mapper::toBookingDto)
                         .collect(Collectors.toList());
                 break;
             default:
-                throw new WrongOwnerException(String.format("Состояние бронирования %s недопустимо.", state));
+                throw new WrongStateException(String.format("Состояние бронирования %s недопустимо.", state));
         }
         return result;
     }
 
     @Override
-    public List<BookingDto> getAllUserItemsBooking(BookingState state, Long userId) {
+    public List<BookingDto> getAllOwnerItemsBooking(BookingState state, Long userId, PageRequest pageRequest) {
         checkUserNotNullAndExist(userId);
         List<BookingDto> result;
         LocalDateTime currentTime = LocalDateTime.now();
         switch (state) {
             case ALL:
-                result = bookingDao.findAllByItemOwner(userId).stream()
+                result = bookingDao.findAllByItemOwner(userId,
+                                pageRequest).stream()
                         .map(mapper::toBookingDto)
                         .collect(Collectors.toList());
                 break;
             case PAST:
-                result = bookingDao.findAllByItemOwnerInPast(userId, currentTime).stream()
+                result = bookingDao.findAllByItemOwnerInPast(userId,
+                                currentTime,
+                                pageRequest).stream()
                         .map(mapper::toBookingDto)
                         .collect(Collectors.toList());
                 break;
             case FUTURE:
-                result = bookingDao.findAllByItemOwnerInFuture(userId, currentTime).stream()
+                result = bookingDao.findAllByItemOwnerInFuture(userId,
+                                currentTime,
+                                pageRequest).stream()
                         .map(mapper::toBookingDto)
                         .collect(Collectors.toList());
                 break;
             case CURRENT:
                 result = bookingDao.findAllByItemOwnerCurrent(userId,
                                 currentTime,
-                                currentTime).stream()
+                                currentTime,
+                                pageRequest).stream()
                         .map(mapper::toBookingDto)
                         .collect(Collectors.toList());
                 break;
             case WAITING:
-                result = bookingDao.findAllByItemOwnerAndStatus(userId, BookingStatus.WAITING).stream()
+                result = bookingDao.findAllByItemOwnerAndStatus(userId,
+                                BookingStatus.WAITING,
+                                pageRequest).stream()
                         .map(mapper::toBookingDto)
                         .collect(Collectors.toList());
                 break;
             case REJECTED:
-                result = bookingDao.findAllByItemOwnerAndStatus(userId, BookingStatus.REJECTED).stream()
+                result = bookingDao.findAllByItemOwnerAndStatus(userId,
+                                BookingStatus.REJECTED,
+                                pageRequest).stream()
                         .map(mapper::toBookingDto)
                         .collect(Collectors.toList());
                 break;
             default:
-                throw new WrongOwnerException(String.format("Состояние бронирования %s недопустимо.", state));
+                throw new WrongStateException(String.format("Состояние бронирования %s недопустимо.", state));
         }
         return result;
     }
