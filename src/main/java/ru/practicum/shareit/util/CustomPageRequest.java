@@ -4,7 +4,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 
 public class CustomPageRequest extends PageRequest {
-    int offset;
+    private final int offset;
 
     /**
      * Creates a new {@link PageRequest} with sort parameters applied.
