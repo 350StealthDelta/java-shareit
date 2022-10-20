@@ -1,11 +1,13 @@
 package ru.practicum.shareit.item.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.dao.BookingRepository;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.exception.ItemNotFoundException;
+import ru.practicum.shareit.exception.RequestNotFoundException;
 import ru.practicum.shareit.exception.UserNotFoundException;
 import ru.practicum.shareit.exception.WrongOwnerException;
 import ru.practicum.shareit.item.dao.CommentRepository;
@@ -13,6 +15,8 @@ import ru.practicum.shareit.item.dao.ItemRepository;
 import ru.practicum.shareit.item.dto.*;
 import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.request.dao.ItemRequestRepository;
+import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.user.dao.UserRepository;
 import ru.practicum.shareit.user.model.User;
 
@@ -29,6 +33,7 @@ public class ItemServiceImpl implements ItemService {
     private final UserRepository userDao;
     private final BookingRepository bookingDao;
     private final CommentRepository commentDao;
+    private final ItemRequestRepository requestDao;
     private final ItemDtoMapper mapper;
     private final CommentDtoMapper commentDtoMapper;
 
@@ -52,8 +57,8 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public List<ItemDtoForOut> getAllItems(Long ownerId) {
-        return itemDao.findAllByOwnerId(ownerId).stream()
+    public List<ItemDtoForOut> getAllItems(Long ownerId, PageRequest pageRequest) {
+        return itemDao.findAllByOwnerId(ownerId, pageRequest).stream()
                 .map(item -> getItem(item.getId(), ownerId))
                 .collect(Collectors.toList());
     }
@@ -61,7 +66,8 @@ public class ItemServiceImpl implements ItemService {
     @Override
     @Transactional
     public ItemDto addItem(ItemDto itemDto, Long userId) {
-        Item item = mapper.dtoToItem(itemDto, getUserById(userId));
+        ItemRequest request = getRequestByItemDto(itemDto);
+        Item item = mapper.dtoToItem(itemDto, getUserById(userId), request);
         return mapper.itemToDto(itemDao.save(item));
     }
 
@@ -69,7 +75,8 @@ public class ItemServiceImpl implements ItemService {
     @Transactional
     public ItemDto updateItem(ItemDto itemDto, Long itemId, Long userId) {
         itemOwnerCheck(getItemById(itemId), getUserById(userId));
-        Item item = mapper.dtoToItem(itemDto, getUserById(userId));
+        ItemRequest request = getRequestByItemDto(itemDto);
+        Item item = mapper.dtoToItem(itemDto, getUserById(userId), request);
         Item itemFromRepository = getItemById(itemId);
         itemFieldsMapping(item, itemFromRepository);
         return mapper.itemToDto(itemDao.save(item));
@@ -83,11 +90,11 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public List<ItemDto> searchItems(String text) {
+    public List<ItemDto> searchItems(String text, PageRequest pageRequest) {
         if (text.isBlank()) {
             return new ArrayList<>();
         }
-        return itemDao.searchItems(text).stream()
+        return itemDao.findAllBySearchParam(text, pageRequest).stream()
                 .filter(Item::getAvailable)
                 .map(mapper::itemToDto)
                 .collect(Collectors.toList());
@@ -160,5 +167,14 @@ public class ItemServiceImpl implements ItemService {
         if (itemFor.getRequest() == null) {
             itemFor.setRequest(itemFrom.getRequest());
         }
+    }
+
+    private ItemRequest getRequestById(Long requestId) {
+        return requestDao.findById(requestId).orElseThrow(() -> new RequestNotFoundException(String
+                .format("Request с id %s не найден.", requestId)));
+    }
+
+    private ItemRequest getRequestByItemDto(ItemDto itemDto) {
+        return itemDto.getRequestId() != null ? getRequestById(itemDto.getRequestId()) : null;
     }
 }

@@ -1,7 +1,6 @@
 package ru.practicum.shareit.item.dto;
 
 import lombok.*;
-import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.util.OnCreate;
 import ru.practicum.shareit.util.OnUpdate;
 
@@ -23,5 +22,5 @@ public class ItemDto {
     private String description;
     @NotNull(message = "Available должна быть указана", groups = {OnCreate.class, OnUpdate.class})
     private Boolean available;
-    private ItemRequest request;
+    private Long requestId;
 }
